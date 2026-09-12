@@ -8,7 +8,7 @@ pd.set_option('display.max_columns', None)
 print(txn.shape)
 print(txn.columns.tolist())
 print(txn.head(10))
-'''
+
 # Preserve original amount
 txn["amount_raw"] = txn["amount"]
 
@@ -101,7 +101,7 @@ print(
         ["txn_id", "amount_raw", "amount_clean", "status"]
     ].head(20)
 )
-'''
+
 #                                              +++++++++++++++++++++============timestamp_cleaning==============++++++++++++++++++++++++++
 
 print(txn["timestamp"].head(20).to_string())
@@ -186,7 +186,80 @@ txn["timestamp_issue"] = txn["timestamp_clean"].isna().map({
 print(txn["timestamp_issue"].value_counts(dropna=False))
 
 
+#++++++++++++++++++++++++++++++++++++++++===================txn_id=================+++++++++++++++++++++++++++++++++++++
 
+txn["txn_id_raw"] = txn["txn_id"]
+
+print(txn["txn_id"].head(20).to_string())
+print(txn["txn_id"].dtype)
+
+
+print("Missing txn_id:", txn["txn_id"].isna().sum())
+print("Duplicate txn_id:", txn["txn_id"].duplicated().sum())
+print(txn["txn_id"].astype(str).str.len().value_counts())
+
+
+duplicate_ids = txn.loc[
+    txn["txn_id"].duplicated(keep=False),
+    "txn_id"
+]
+
+print("Unique duplicated IDs:", duplicate_ids.nunique())
+print(duplicate_ids.value_counts().head(20))
+
+print(
+    txn[
+        txn["txn_id"].isin(duplicate_ids)
+    ][
+        [
+            "txn_id",
+            "timestamp",
+            "user_id",
+            "merchant_id",
+            "amount_clean",
+            "status"
+        ]
+    ].sort_values("txn_id").head(30)
+)
+
+
+print(
+    "Complete duplicate rows:",
+    txn.duplicated().sum()
+)
+duplicate_ids = txn.loc[
+    txn["txn_id"].duplicated(keep=False),
+    "txn_id"
+]
+
+print("Unique duplicated IDs:", duplicate_ids.nunique())
+print("Duplicate occurrences:", len(duplicate_ids))
+print("Complete duplicate rows:", txn.duplicated().sum())
+
+
+before = len(txn)
+
+txn = txn.drop_duplicates().copy()
+
+after = len(txn)
+
+print("Rows before:", before)
+print("Rows after:", after)
+print("Rows removed:", before - after)
+print("Remaining duplicate txn_id:", txn["txn_id"].duplicated().sum())
+
+import re
+
+txn["txn_id_clean"] = txn["txn_id"].astype("string").str.strip().str.upper()
+
+valid_txn_id = txn["txn_id_clean"].str.fullmatch(r"TXN\d{8}")
+
+print("Invalid txn_id:", (~valid_txn_id).sum())
+print(txn.loc[~valid_txn_id, ["txn_id", "txn_id_clean"]].head(20))
+
+print("Missing txn_id:", txn["txn_id_clean"].isna().sum())
+print("Duplicate txn_id:", txn["txn_id_clean"].duplicated().sum())
+print("Total rows:", len(txn))
 
 
 
