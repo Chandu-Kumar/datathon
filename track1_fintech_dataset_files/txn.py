@@ -346,6 +346,51 @@ print(
 print("Missing merchant_id:", txn["merchant_id_clean"].isna().sum())
 print("Unique merchants:", txn["merchant_id_clean"].nunique())
 
+#++++++++++++++++++++++++++++++++==============================utr===============================++++++++++++++++++++++++++++++++++++++++++
+
+
+txn["utr_raw"] = txn["utr"]
+
+print(txn["utr"].head(20).to_string())
+print("Data type:", txn["utr"].dtype)
+
+print("Missing UTR:", txn["utr"].isna().sum())
+
+print(
+    "UTR length distribution:",
+    txn["utr"].astype("string").str.len().value_counts()
+)
+
+print(
+    "Unique UTRs:",
+    txn["utr"].nunique()
+)
+
+txn["utr_clean"] = (
+    txn["utr"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+    .str.replace(r"\s+", "", regex=True)
+)
+
+valid_utr = txn["utr_clean"].str.fullmatch(r"UTR\d{10}")
+
+print("Missing UTR:", txn["utr_clean"].isna().sum())
+print("Invalid UTR:", (~valid_utr & txn["utr_clean"].notna()).sum())
+
+print(
+    txn.loc[
+        ~valid_utr & txn["utr_clean"].notna(),
+        ["utr", "utr_clean"]
+    ].head(20)
+)
+
+print(
+    "Duplicate UTRs:",
+    txn["utr_clean"].dropna().duplicated().sum()
+)
+
 
 
 
