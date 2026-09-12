@@ -261,6 +261,49 @@ print("Missing txn_id:", txn["txn_id_clean"].isna().sum())
 print("Duplicate txn_id:", txn["txn_id_clean"].duplicated().sum())
 print("Total rows:", len(txn))
 
+#+++++++++++++++++++++++++++++=============================user_id_cleaning++++++++++++++++++++++++++++++++++==============================================
+
+txn["user_id_raw"] = txn["user_id"]
+
+print(txn["user_id"].head(20).to_string())
+print("Data type:", txn["user_id"].dtype)
+
+print("Missing user_id:", txn["user_id"].isna().sum())
+
+print(
+    "User ID length distribution:",
+    txn["user_id"].astype("string").str.len().value_counts()
+)
+
+print(
+    "Unique users:",
+    txn["user_id"].nunique()
+)
+
+
+txn["user_id_clean"] = (
+    txn["user_id"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+)
+
+
+valid_user_id = txn["user_id_clean"].str.fullmatch(r"USR\d{5}")
+
+print("Invalid user_id:", (~valid_user_id).sum())
+
+print(
+    txn.loc[
+        ~valid_user_id,
+        ["user_id", "user_id_clean"]
+    ].head(20)
+)
+
+
+print("Missing user_id:", txn["user_id_clean"].isna().sum())
+print("Unique users:", txn["user_id_clean"].nunique())
+
 
 
 
