@@ -434,6 +434,67 @@ print(
 
 print(txn["mcc_clean"].value_counts(dropna=False))
 
+#=================================+++++++=================================status_cleaning================+++++++++++++++++++++++++++++++++++
 
 
+txn["status_raw"] = txn["status"]
 
+
+print(txn["status"].value_counts(dropna=False))
+
+print("Missing status:", txn["status"].isna().sum())
+
+print(
+    "Unique status values:",
+    txn["status"].nunique()
+)
+
+
+status_mapping = {
+    "S": "SUCCESS",
+    "Success": "SUCCESS",
+    "TXN_SUCCESS": "SUCCESS",
+    "SUCCESS": "SUCCESS",
+    "COMPLETED": "SUCCESS",
+
+    "FAILED": "FAILED",
+    "TXN_FAILED": "FAILED",
+    "Fail": "FAILED",
+    "Declined": "FAILED",
+    "F": "FAILED",
+
+    "PENDING": "PENDING",
+    "Pending": "PENDING",
+
+    "PROCESSING": "PROCESSING",
+
+    "Initiated": "INITIATED"
+}
+
+txn["status_clean"] = (
+    txn["status"]
+    .astype("string")
+    .str.strip()
+    .map(status_mapping)
+)
+
+
+print("Missing cleaned status:", txn["status_clean"].isna().sum())
+
+print(
+    txn["status_clean"].value_counts(dropna=False)
+)
+
+
+valid_statuses = [
+    "SUCCESS",
+    "FAILED",
+    "PENDING",
+    "PROCESSING",
+    "INITIATED"
+]
+
+print(
+    "Invalid statuses:",
+    (~txn["status_clean"].isin(valid_statuses)).sum()
+)
