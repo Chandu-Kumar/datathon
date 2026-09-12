@@ -391,7 +391,48 @@ print(
     txn["utr_clean"].dropna().duplicated().sum()
 )
 
+#++++++++++++++++++++++++++++++++++++++++++++++++====================================merchant cateegory code =================================++++++++++++++++++++++++++++++++++++++++++=======
 
+
+txn["mcc_raw"] = txn["mcc"]
+
+print(txn["mcc"].head(20).to_string())
+print("Data type:", txn["mcc"].dtype)
+
+print("Missing MCC:", txn["mcc"].isna().sum())
+
+print(
+    "MCC data type:",
+    txn["mcc"].dtype
+)
+
+print(
+    "Unique MCC values:",
+    txn["mcc"].nunique()
+)
+
+print(
+    txn["mcc"].value_counts(dropna=False).head(20)
+)
+
+
+txn["mcc_clean"] = txn["mcc"].astype("Int64")
+
+print("Missing MCC:", txn["mcc_clean"].isna().sum())
+
+print(
+    "MCC values:",
+    sorted(txn["mcc_clean"].dropna().unique())
+)
+
+print(
+    "Invalid MCC:",
+    (~txn["mcc_clean"].isin([4131, 5411, 5812, 5912, 7011])
+     & txn["mcc_clean"].notna()).sum()
+)
+
+
+print(txn["mcc_clean"].value_counts(dropna=False))
 
 
 
