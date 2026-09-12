@@ -498,3 +498,96 @@ print(
     "Invalid statuses:",
     (~txn["status_clean"].isin(valid_statuses)).sum()
 )
+
+
+
+print("========== TRANSACTION DATA QUALITY REPORT ==========")
+
+print("Total rows:", len(txn))
+print("Total columns:", len(txn.columns))
+
+print("\nMissing values in cleaned columns:")
+print(
+    txn[
+        [
+            "txn_id_clean",
+            "timestamp_clean",
+            "user_id_clean",
+            "merchant_id_clean",
+            "amount_clean",
+            "utr_clean",
+            "mcc_clean",
+            "status_clean"
+        ]
+    ].isna().sum()
+)
+
+print("\nDuplicate transaction IDs:")
+print(txn["txn_id_clean"].duplicated().sum())
+
+print("\nNegative amounts:")
+print((txn["amount_clean"] < 0).sum())
+
+print("\nStatus distribution:")
+print(txn["status_clean"].value_counts())
+
+cleaned_txn = txn[
+    [
+        "txn_id_clean",
+        "timestamp_clean",
+        "user_id_clean",
+        "merchant_id_clean",
+        "amount_clean",
+        "utr_clean",
+        "mcc_clean",
+        "status_clean"
+    ]
+].copy()
+
+
+cleaned_txn.columns = [
+    "txn_id",
+    "timestamp",
+    "user_id",
+    "merchant_id",
+    "amount",
+    "utr",
+    "mcc",
+    "status"
+]
+
+
+cleaned_txn = txn[
+    [
+        "txn_id_clean",
+        "timestamp_clean",
+        "user_id_clean",
+        "merchant_id_clean",
+        "amount_clean",
+        "utr_clean",
+        "mcc_clean",
+        "status_clean"
+    ]
+].copy()
+
+cleaned_txn.columns = [
+    "txn_id",
+    "timestamp",
+    "user_id",
+    "merchant_id",
+    "amount",
+    "utr",
+    "mcc",
+    "status"
+]
+
+cleaned_txn.to_csv(
+    "track1_upi_transactions_cleaned.csv",
+    index=False
+)
+
+print("Cleaned file exported successfully!")
+print("Shape:", cleaned_txn.shape)
+
+
+

@@ -49,16 +49,14 @@ txn["user_id"] = txn["user_id"].apply(clean_user_id)
 kyc["user_id"] = kyc["user_id"].apply(clean_user_id)
 cb["user_id"] = cb["user_id"].apply(clean_user_id)
 
-def clean_amount(x):
-    if pd.isna(x):
-        return None
 
-    x = str(x)
-    x = re.sub(r'[^\d.]', '', x)
+check = pd.read_csv("track1_upi_transactions_cleaned.csv")
 
-    if x == "":
-        return None
+print(check.shape)
+print(check.head())
+print(check.isna().sum())
 
-    return float(x)
+
+
 
 
