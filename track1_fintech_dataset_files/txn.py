@@ -304,7 +304,47 @@ print(
 print("Missing user_id:", txn["user_id_clean"].isna().sum())
 print("Unique users:", txn["user_id_clean"].nunique())
 
+#+++++++++++++++++++++++++++++++++=====================================merchent_id===================+++++++===========+++++++++++++++++++++++
 
+
+txn["merchant_id_raw"] = txn["merchant_id"]
+
+print(txn["merchant_id"].head(20).to_string())
+print("Data type:", txn["merchant_id"].dtype)
+
+print("Missing merchant_id:", txn["merchant_id"].isna().sum())
+
+print(
+    "Merchant ID length distribution:",
+    txn["merchant_id"].astype("string").str.len().value_counts()
+)
+
+print(
+    "Unique merchants:",
+    txn["merchant_id"].nunique()
+)
+
+txn["merchant_id_clean"] = (
+    txn["merchant_id"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+)
+
+valid_merchant_id = txn["merchant_id_clean"].str.fullmatch(r"MCH\d{4}")
+
+print("Invalid merchant_id:", (~valid_merchant_id).sum())
+
+print(
+    txn.loc[
+        ~valid_merchant_id,
+        ["merchant_id", "merchant_id_clean"]
+    ].head(20)
+)
+
+
+print("Missing merchant_id:", txn["merchant_id_clean"].isna().sum())
+print("Unique merchants:", txn["merchant_id_clean"].nunique())
 
 
 
