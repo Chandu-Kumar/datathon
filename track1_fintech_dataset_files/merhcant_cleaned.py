@@ -248,3 +248,41 @@ print("\nFinal categories:")
 print(merchants["merchant_category_clean"].value_counts())
 
 
+#======================================================================Bussiness_type_cleaning===================================================
+
+
+merchants["business_type_clean"] = (
+    merchants["business_type"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.upper()
+)
+
+print("Missing business types:",
+      merchants["business_type_clean"].isna().sum())
+
+print("\nUnique business types:")
+print(merchants["business_type_clean"].unique())
+
+print("\nBusiness type counts:")
+print(merchants["business_type_clean"].value_counts())
+
+business_type_mapping = {
+    "PRIVATE LIMITED": "PRIVATE_LIMITED",
+    "PRIVATE-LIMITED": "PRIVATE_LIMITED",
+
+    "SOLE PROPRIETOR": "SOLE_PROPRIETOR",
+    "SOLE-PROPRIETOR": "SOLE_PROPRIETOR"
+}
+
+merchants["business_type_clean"] = (
+    merchants["business_type_clean"].replace(business_type_mapping)
+)
+
+print("Unique business types after standardization:",
+      merchants["business_type_clean"].nunique())
+
+print("\nFinal business type counts:")
+print(merchants["business_type_clean"].value_counts())
+
