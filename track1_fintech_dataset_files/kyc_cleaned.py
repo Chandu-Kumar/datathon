@@ -320,4 +320,74 @@ pan_user_counts = (
 print("PANs linked to multiple users:", (pan_user_counts > 1).sum())
 print("PANs repeated within same user only:", (pan_user_counts == 1).sum())
 
+#++++++++++++++++++++++++++++++++++================aadhar_cleaning========================++++++++++++++++++
+
+
+
+def clean_aadhaar(x):
+    if pd.isna(x):
+        return pd.NA
+
+    x = str(x).strip().upper()
+
+    # Masked Aadhaar ko missing treat karo
+    if "X" in x:
+        return pd.NA
+
+    # Sirf digits rakho
+    x = re.sub(r"[^0-9]", "", x)
+
+    # Aadhaar exactly 12 digits ka hona chahiye
+    if re.fullmatch(r"\d{12}", x):
+        return x
+
+    return pd.NA
+
+
+kyc["aadhaar_clean"] = kyc["aadhaar"].apply(clean_aadhaar)
+
+print("Original missing Aadhaar:", kyc["aadhaar"].isna().sum())
+
+print("Cleaned missing Aadhaar:", kyc["aadhaar_clean"].isna().sum())
+
+print(
+    "Invalid non-missing Aadhaar:",
+    (
+        kyc["aadhaar"].notna()
+        & kyc["aadhaar_clean"].isna()
+    ).sum()
+)
+
+print("Valid Aadhaar:", kyc["aadhaar_clean"].notna().sum())
+
+print(
+    kyc[["aadhaar", "aadhaar_clean"]].head(20)
+)
+
+valid_aadhaar = kyc["aadhaar_clean"].dropna()
+
+print("Unique valid Aadhaar:", valid_aadhaar.nunique())
+
+print(
+    "Duplicate Aadhaar occurrences:",
+    valid_aadhaar.duplicated().sum()
+)
+
+aadhaar_user_counts = (
+    kyc.dropna(subset=["aadhaar_clean"])
+    .groupby("aadhaar_clean")["user_id_clean"]
+    .nunique()
+)
+
+print(
+    "Aadhaar linked to multiple users:",
+    (aadhaar_user_counts > 1).sum()
+)
+
+print(
+    "Aadhaar repeated within same user:",
+    (aadhaar_user_counts == 1).sum()
+)
+
+
 
