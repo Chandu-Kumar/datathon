@@ -701,4 +701,35 @@ print(
     ].head(20)
 )
 
+#============================================================cleaning occupation================================================
+
+kyc["occupation_clean"] = (
+    kyc["occupation"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.title()
+)
+
+missing_occupation_values = [
+    "",
+    "Na",
+    "N/A",
+    "None",
+    "Null",
+    "Not Available",
+    "Unknown"
+]
+
+kyc["occupation_clean"] = kyc["occupation_clean"].replace(
+    missing_occupation_values,
+    pd.NA
+)
+
+print("Missing occupation values:", kyc["occupation_clean"].isna().sum())
+
+print("\nUnique occupations:", kyc["occupation_clean"].nunique())
+
+print("\nOccupation counts:")
+print(kyc["occupation_clean"].value_counts(dropna=False))
 
