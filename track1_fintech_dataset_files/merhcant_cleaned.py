@@ -167,3 +167,84 @@ print("Invalid MCC values:", len(invalid_mcc))
 print("\nInvalid MCC examples:")
 print(invalid_mcc[["mcc", "mcc_clean"]].head(10))
 
+
+
+#================================================================merchant_category-cleaning===============================================
+
+merchants["merchant_category_clean"] = (
+    merchants["merchant_category"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.upper()
+)
+
+print("Missing merchant categories:",
+      merchants["merchant_category_clean"].isna().sum())
+
+print("\nUnique merchant categories:")
+print(merchants["merchant_category_clean"].unique())
+
+print("\nCategory counts:")
+print(merchants["merchant_category_clean"].value_counts())
+
+
+category_mapping = {
+    "HOTEL": "HOSPITALITY",
+    "HOTELS": "HOSPITALITY",
+    "HOTEL_LODGING": "HOSPITALITY",
+
+    "APPAREL": "CLOTHING",
+    "CLOTHS": "CLOTHING",
+    "GARMENTS": "CLOTHING",
+    "FASHION": "CLOTHING",
+
+    "TRANSPORT": "TRANSPORTATION",
+    "TRANSPRT": "TRANSPORTATION",
+    "TRAVEL": "TRANSPORTATION",
+    "BUS/TAXI": "TRANSPORTATION",
+
+    "RESTAURANTS": "RESTAURANT",
+    "EATING PLACE": "RESTAURANT",
+    "FOOD": "RESTAURANT",
+    "FOOD_SERVICES": "RESTAURANT",
+
+    "DEPT_STORE": "DEPARTMENT STORE",
+    "DEPARTMENT STORES": "DEPARTMENT STORE",
+
+    "GROCERY": "GROCERY",
+    "GROCERIES": "GROCERY",
+    "GROCERY_STORE": "GROCERY",
+    "GROCERY STORES": "GROCERY",
+    "KIRANA": "GROCERY",
+
+    "MISC RETAIL": "MISCELLANEOUS RETAIL",
+    "RETAIL OTHER": "MISCELLANEOUS RETAIL",
+    "MISCELLANEOUS": "MISCELLANEOUS RETAIL",
+
+    "BOOKS": "BOOKS_STATIONERY",
+    "BOOK STORE": "BOOKS_STATIONERY",
+    "STATIONERY": "BOOKS_STATIONERY",
+
+    "MEDICAL": "MEDICAL",
+    "MEDICAL_STORE": "MEDICAL",
+    "PHARMACY": "MEDICAL",
+    "PHARMACIES": "MEDICAL",
+    "CHEMIST": "MEDICAL",
+
+    "TELECOM": "TELECOM",
+    "PHONE SERVICE": "TELECOM",
+    "MOBILE RECHARGE": "TELECOM"
+}
+
+merchants["merchant_category_clean"] = (
+    merchants["merchant_category_clean"].replace(category_mapping)
+)
+
+print("Unique categories after standardization:",
+      merchants["merchant_category_clean"].nunique())
+
+print("\nFinal categories:")
+print(merchants["merchant_category_clean"].value_counts())
+
+
