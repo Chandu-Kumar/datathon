@@ -588,5 +588,55 @@ print(
 
 
 
+#===========================================================merchant_status_cleaning==========================================
+
+
+print("Missing merchant statuses:",
+      merchants["merchant_status"].isna().sum())
+
+print("\nUnique merchant statuses:")
+print(merchants["merchant_status"].unique())
+
+print("\nMerchant status counts:")
+print(merchants["merchant_status"].value_counts())
+
+merchants["merchant_status_clean"] = (
+    merchants["merchant_status"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+)
+
+status_mapping = {
+    "ACTIVE": "ACTIVE",
+    "A": "ACTIVE",
+    "LIVE": "ACTIVE",
+    "ENABLED": "ACTIVE",
+
+    "INACTIVE": "INACTIVE",
+    "I": "INACTIVE",
+    "DISABLED": "INACTIVE",
+    "CLOSED": "INACTIVE",
+
+    "SUSPENDED": "SUSPENDED",
+    "S": "SUSPENDED",
+    "HOLD": "SUSPENDED",
+    "BLOCKED": "SUSPENDED"
+}
+
+merchants["merchant_status_clean"] = (
+    merchants["merchant_status_clean"].replace(status_mapping)
+)
+
+print("Unique statuses after standardization:",
+      merchants["merchant_status_clean"].nunique())
+
+print("\nFinal merchant status counts:")
+print(merchants["merchant_status_clean"].value_counts())
+
+print("\nMissing cleaned statuses:",
+      merchants["merchant_status_clean"].isna().sum())
+
+
 
 
