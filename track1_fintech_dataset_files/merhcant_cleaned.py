@@ -390,5 +390,114 @@ print(
 )
 
 
+#==========================================================onboarding_cleaning=======================================
+
+
+def clean_onboarding_date(x):
+    if pd.isna(x):
+        return pd.NaT
+
+    x = str(x).strip()
+
+    if x == "":
+        return pd.NaT
+
+    # Unix timestamp in seconds
+    if x.isdigit() and len(x) == 10:
+        try:
+            return pd.to_datetime(int(x), unit="s")
+        except (ValueError, TypeError, OverflowError):
+            return pd.NaT
+
+    formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+
+        "%m-%d-%Y",
+        "%d-%m-%Y",
+
+        "%m/%d/%Y",
+        "%d/%m/%Y",
+
+        "%d-%b-%Y",
+        "%d/%b/%Y",
+
+        "%m/%d/%Y %I:%M %p",
+        "%d/%m/%Y %I:%M %p",
+
+        "%m/%d/%Y %H:%M:%S",
+        "%d/%m/%Y %H:%M:%S",
+    ]
+
+    for fmt in formats:
+        try:
+            return pd.to_datetime(x, format=fmt)
+        except (ValueError, TypeError):
+            continue
+
+    return pd.NaT
+
+
+merchants["onboarding_date_clean"] = merchants[
+    "onboarding_date"
+].apply(clean_onboarding_date)
+
+print("Missing onboarding dates after advanced cleaning:",
+      merchants["onboarding_date_clean"].isna().sum())
+
+print("\nValid onboarding dates:",
+      merchants["onboarding_date_clean"].notna().sum())
+
+print("\nMinimum onboarding date:",
+      merchants["onboarding_date_clean"].min())
+
+print("Maximum onboarding date:",
+      merchants["onboarding_date_clean"].max())
+
+print("\nSample original vs cleaned dates:")
+print(
+    merchants[
+        ["onboarding_date", "onboarding_date_clean"]
+    ].head(15)
+)
+
+
+today = pd.Timestamp.today()
+
+future_onboarding = merchants[
+    merchants["onboarding_date_clean"] > today
+]
+
+print("Future onboarding dates:", len(future_onboarding))
+
+print("\nFuture date examples:")
+print(
+    future_onboarding[
+        ["merchant_id_clean", "onboarding_date_clean"]
+    ].head(10)
+)
+
+
+today = pd.Timestamp.today().normalize()
+
+future_mask = merchants["onboarding_date_clean"] > today
+
+print("Future onboarding dates:", future_mask.sum())
+
+# Future dates ko missing mark karna
+merchants.loc[future_mask, "onboarding_date_clean"] = pd.NaT
+
+print(
+    "Future dates remaining:",
+    (merchants["onboarding_date_clean"] > today).sum()
+)
+
+print(
+    "Missing onboarding dates after validation:",
+    merchants["onboarding_date_clean"].isna().sum()
+)
+
+
 
 
