@@ -390,4 +390,115 @@ print(
 )
 
 
+#======================================================dob_cleaning=================================================================
 
+
+
+def clean_dob(x):
+    if pd.isna(x):
+        return pd.NaT
+
+    x = str(x).strip()
+
+    if x == "":
+        return pd.NaT
+
+    formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%d/%m/%Y %I:%M %p",
+        "%d/%m/%Y",
+        "%d-%m-%Y",
+        "%m-%d-%Y",
+        "%d-%b-%Y",
+        "%Y/%m/%d",
+    ]
+
+    for fmt in formats:
+        try:
+            return pd.to_datetime(x, format=fmt).date()
+        except (ValueError, TypeError):
+            continue
+
+    return pd.NaT
+
+
+
+kyc["dob_clean"] = kyc["date_of_birth"].apply(clean_dob)
+
+print("Original missing DOB:", kyc["date_of_birth"].isna().sum())
+
+print("Cleaned missing DOB:", kyc["dob_clean"].isna().sum())
+
+print(
+    "Invalid non-missing DOB:",
+    (
+        kyc["date_of_birth"].notna()
+        & kyc["dob_clean"].isna()
+    ).sum()
+)
+
+print(kyc[["date_of_birth", "dob_clean"]].head(20))
+
+
+today = pd.Timestamp.today().normalize()
+
+dob_series = pd.to_datetime(kyc["dob_clean"], errors="coerce")
+
+future_dob = dob_series > today
+
+print("Future DOB values:", future_dob.sum())
+
+print(
+    "Future DOB examples:"
+)
+
+print(
+    kyc.loc[
+        future_dob,
+        ["user_id_clean", "date_of_birth", "dob_clean"]
+    ].head(20)
+)
+
+
+too_old_dob = dob_series < pd.Timestamp("1900-01-01")
+
+print("DOB before 1900:", too_old_dob.sum())
+
+print(
+    kyc.loc[
+        too_old_dob,
+        ["user_id_clean", "date_of_birth", "dob_clean"]
+    ].head(20)
+)
+
+
+
+today = pd.Timestamp.today().normalize()
+
+dob_series = pd.to_datetime(kyc["dob_clean"], errors="coerce")
+
+age = (
+    today.year
+    - dob_series.dt.year
+    - (
+        (today.month < dob_series.dt.month)
+        |
+        (
+            (today.month == dob_series.dt.month)
+            & (today.day < dob_series.dt.day)
+        )
+    )
+)
+
+minor_users = age < 18
+
+print("Users below 18 years:", minor_users.sum())
+
+print("\nMinor user examples:")
+print(
+    kyc.loc[
+        minor_users,
+        ["user_id_clean", "date_of_birth", "dob_clean"]
+    ].head(20)
+)
