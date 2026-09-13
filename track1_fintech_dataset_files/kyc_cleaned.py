@@ -230,4 +230,94 @@ kyc["record_duplicate"] = kyc_check.duplicated(
 print("Exact duplicate records:", kyc["record_duplicate"].sum())
 
 
+import re
+
+def clean_pan(x):
+    if pd.isna(x):
+        return pd.NA
+
+    x = str(x).strip().upper()
+    x = re.sub(r"[^A-Z0-9]", "", x)
+
+    if re.fullmatch(r"[A-Z]{5}\d{4}[A-Z]", x):
+        return x
+
+    return pd.NA
+
+kyc["pan_clean"] = kyc["pan"].apply(clean_pan)
+
+print("Missing PAN after cleaning:", kyc["pan_clean"].isna().sum())
+
+print(
+    "Invalid PAN:",
+    (kyc["pan"].notna() & kyc["pan_clean"].isna()).sum()
+)
+
+print(kyc[["pan", "pan_clean"]].head(20))
+
+print("Original missing PAN:", kyc["pan"].isna().sum())
+
+print("Cleaned missing PAN:", kyc["pan_clean"].isna().sum())
+
+print(
+    "Invalid non-missing PAN:",
+    (kyc["pan"].notna() & kyc["pan_clean"].isna()).sum()
+)
+
+print("Valid PAN:", kyc["pan_clean"].notna().sum())
+
+
+invalid_pan = kyc[
+    kyc["pan"].notna() & kyc["pan_clean"].isna()
+]
+
+print(
+    invalid_pan[["user_id_clean", "pan"]]
+    .drop_duplicates()
+    .head(20)
+)
+
+valid_pan = kyc["pan_clean"].dropna()
+
+print("Unique valid PANs:", valid_pan.nunique())
+
+print(
+    "Duplicate valid PAN values:",
+    valid_pan.duplicated().sum()
+)
+
+duplicate_pan_values = (
+    valid_pan[valid_pan.duplicated(keep=False)]
+    .drop_duplicates()
+)
+
+print("PAN values used by multiple records:", len(duplicate_pan_values))
+
+print(duplicate_pan_values.head(20).to_list())
+
+duplicate_pan_rows = kyc[
+    kyc["pan_clean"].isin(duplicate_pan_values)
+].sort_values("pan_clean")
+
+print(
+    duplicate_pan_rows[
+        [
+            "pan_clean",
+            "user_id_clean",
+            "full_name_clean",
+            "aadhaar",
+            "kyc_status"
+        ]
+    ].head(30).to_string(index=False)
+)
+
+
+pan_user_counts = (
+    duplicate_pan_rows.groupby("pan_clean")["user_id_clean"]
+    .nunique()
+)
+
+print("PANs linked to multiple users:", (pan_user_counts > 1).sum())
+print("PANs repeated within same user only:", (pan_user_counts == 1).sum())
+
 
