@@ -131,3 +131,39 @@ print(
     .head(15)
 )
 
+
+#========================================mcc_cleaning================================================
+
+
+merchants["mcc_clean"] = pd.to_numeric(
+    merchants["mcc"],
+    errors="coerce"
+)
+
+print("Missing MCC values after cleaning:",
+      merchants["mcc_clean"].isna().sum())
+
+print("\nMCC data type:",
+      merchants["mcc_clean"].dtype)
+
+print("\nUnique MCC values:")
+print(merchants["mcc_clean"].unique()[:20])
+
+print("\nMCC summary:")
+print(merchants["mcc_clean"].describe())
+
+
+invalid_mcc = merchants[
+    merchants["mcc_clean"].notna()
+    & (
+        (merchants["mcc_clean"] < 1000)
+        | (merchants["mcc_clean"] > 9999)
+        | (merchants["mcc_clean"] % 1 != 0)
+    )
+]
+
+print("Invalid MCC values:", len(invalid_mcc))
+
+print("\nInvalid MCC examples:")
+print(invalid_mcc[["mcc", "mcc_clean"]].head(10))
+
