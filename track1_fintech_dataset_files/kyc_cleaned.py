@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 import re
 
@@ -612,5 +613,92 @@ print(
     ].drop_duplicates().head(20)
 )
 
+
+#============================================================monthly_income_cleaning======================================================
+
+
+print("Monthly income datatype:", kyc["monthly_income"].dtype)
+
+print("\nMissing income values:", kyc["monthly_income"].isna().sum())
+
+print("\nIncome summary:")
+print(kyc["monthly_income"].describe())
+
+print("\nIncome examples:")
+print(kyc["monthly_income"].head(20).tolist())
+
+
+
+
+def clean_income(x):
+    if pd.isna(x):
+        return np.nan
+
+    x = str(x).strip().upper()
+
+    # Missing or unavailable text
+    if x in ["", "NOT AVAILABLE", "N/A", "NA", "NULL", "NONE"]:
+        return np.nan
+
+    # Remove currency labels and symbols
+    x = re.sub(r"₹|INR|RS\.?|,", "", x).strip()
+
+    # Handle values like 27.3K
+    if x.endswith("K"):
+        try:
+            value = float(x[:-1].strip()) * 1000
+        except ValueError:
+            return np.nan
+    else:
+        try:
+            value = float(x)
+        except ValueError:
+            return np.nan
+
+    # Income cannot be negative or zero
+    if value <= 0:
+        return np.nan
+
+    return value
+
+
+kyc["monthly_income_clean"] = kyc["monthly_income"].apply(clean_income)
+
+print("Original missing income:", kyc["monthly_income"].isna().sum())
+print("Cleaned missing income:", kyc["monthly_income_clean"].isna().sum())
+
+print("\nCleaned income datatype:", kyc["monthly_income_clean"].dtype)
+
+print("\nIncome summary:")
+print(kyc["monthly_income_clean"].describe())
+
+print("\nIncome examples:")
+print(
+    kyc[
+        ["monthly_income", "monthly_income_clean"]
+    ].head(20)
+)
+
+
+income = kyc["monthly_income_clean"]
+
+print("Income below ₹5,000:", (income < 5000).sum())
+print("Income above ₹2,00,000:", (income > 200000).sum())
+
+print("\nLow income examples:")
+print(
+    kyc.loc[
+        income < 5000,
+        ["user_id_clean", "monthly_income", "monthly_income_clean"]
+    ].head(20)
+)
+
+print("\nHigh income examples:")
+print(
+    kyc.loc[
+        income > 200000,
+        ["user_id_clean", "monthly_income", "monthly_income_clean"]
+    ].head(20)
+)
 
 
