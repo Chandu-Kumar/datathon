@@ -502,3 +502,115 @@ print(
         ["user_id_clean", "date_of_birth", "dob_clean"]
     ].head(20)
 )
+
+
+#================================================================city&state_cleaning=============================================================
+
+
+
+kyc["city_clean"] = (
+    kyc["city"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.title()
+)
+
+kyc["state_clean"] = (
+    kyc["state"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.title()
+)
+
+print("Missing city values:", kyc["city_clean"].isna().sum())
+print("Missing state values:", kyc["state_clean"].isna().sum())
+
+print("\nCity examples:")
+print(kyc[["city", "city_clean"]].head(10))
+
+print("\nState examples:")
+print(kyc[["state", "state_clean"]].head(10))
+
+print("Unique cities:", kyc["city_clean"].nunique())
+print("Unique states:", kyc["state_clean"].nunique())
+
+print("\nAll unique states:")
+print(sorted(kyc["state_clean"].dropna().unique()))
+
+print("\nTop 30 cities:")
+print(kyc["city_clean"].value_counts().head(30))
+
+
+city_mapping = {
+    "Bombay": "Mumbai",
+    "Mumbay": "Mumbai",
+
+    "Blr": "Bengaluru",
+    "Bangalore": "Bengaluru",
+
+    "Poona": "Pune",
+
+    "Calcutta": "Kolkata",
+
+    "Madras": "Chennai",
+
+    "Hyd": "Hyderabad",
+
+    "Lko": "Lucknow",
+
+    "Jalandar": "Jalandhar",
+
+    "Jpr": "Jaipur",
+
+    "Asr": "Amritsar",
+
+    "Ldh": "Ludhiana",
+
+    "New Delhi": "Delhi",
+    "Dilli": "Delhi"
+}
+
+kyc["city_clean"] = kyc["city_clean"].replace(city_mapping)
+
+print("Unique cities after standardization:", kyc["city_clean"].nunique())
+
+print("\nStandardized city counts:")
+print(kyc["city_clean"].value_counts())
+
+
+
+city_state_mapping = {
+    "Mumbai": "Maharashtra",
+    "Pune": "Maharashtra",
+    "Bengaluru": "Karnataka",
+    "Chennai": "Tamil Nadu",
+    "Hyderabad": "Telangana",
+    "Jaipur": "Rajasthan",
+    "Amritsar": "Punjab",
+    "Jalandhar": "Punjab",
+    "Ludhiana": "Punjab",
+    "Delhi": "Delhi",
+    "Lucknow": "Uttar Pradesh",
+    "Kolkata": "West Bengal"
+}
+
+expected_state = kyc["city_clean"].map(city_state_mapping)
+
+city_state_mismatch = kyc[
+    expected_state.notna()
+    & (kyc["state_clean"] != expected_state)
+]
+
+print("City-state mismatches:", len(city_state_mismatch))
+
+print("\nMismatch examples:")
+print(
+    city_state_mismatch[
+        ["city_clean", "state_clean"]
+    ].drop_duplicates().head(20)
+)
+
+
+
