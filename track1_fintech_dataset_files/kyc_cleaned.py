@@ -812,4 +812,136 @@ print(
 )
 
 
+#===========================================++++++++++++++++++++==================key_status&risk_segment==============================================================
+
+
+
+kyc["kyc_status_clean"] = (
+    kyc["kyc_status"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+    .str.replace(r"\s+", "_", regex=True)
+)
+
+kyc["risk_segment_clean"] = (
+    kyc["risk_segment"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+    .str.replace(r"\s+", "_", regex=True)
+)
+
+print("Unique KYC statuses:")
+print(kyc["kyc_status_clean"].value_counts(dropna=False))
+
+print("\nUnique risk segments:")
+print(kyc["risk_segment_clean"].value_counts(dropna=False))
+
+print("\nMissing KYC status:", kyc["kyc_status_clean"].isna().sum())
+print("Missing risk segment:", kyc["risk_segment_clean"].isna().sum())
+
+
+status_mapping = {
+    "V": "VERIFIED",
+    "P": "PENDING",
+    "R": "REJECTED",
+    "REJECT": "REJECTED"
+}
+
+kyc["kyc_status_clean"] = kyc["kyc_status_clean"].replace(status_mapping)
+
+print("Standardized KYC statuses:")
+print(kyc["kyc_status_clean"].value_counts(dropna=False))
+
+print("\nUnique KYC statuses:", kyc["kyc_status_clean"].nunique())
+
+
+expected_statuses = {
+    "VERIFIED",
+    "APPROVED",
+    "KYC_DONE",
+    "DONE",
+    "PENDING",
+    "REJECTED",
+    "IN_PROGRESS",
+    "UNDER_REVIEW",
+    "FAILED"
+}
+
+expected_risk_segments = {
+    "LOW",
+    "MEDIUM",
+    "HIGH",
+    "UNKNOWN"
+}
+
+unexpected_statuses = set(
+    kyc["kyc_status_clean"].dropna().unique()
+) - expected_statuses
+
+unexpected_risk_segments = set(
+    kyc["risk_segment_clean"].dropna().unique()
+) - expected_risk_segments
+
+print("Unexpected KYC statuses:", unexpected_statuses)
+print("Unexpected risk segments:", unexpected_risk_segments)
+
+status_risk_table = pd.crosstab(
+    kyc["kyc_status_clean"],
+    kyc["risk_segment_clean"],
+    margins=True
+)
+
+print(status_risk_table)
+
+
+unknown_risk = kyc[
+    kyc["risk_segment_clean"] == "UNKNOWN"
+]
+
+print("Total UNKNOWN risk records:", len(unknown_risk))
+
+print("\nKYC status distribution for UNKNOWN risk:")
+print(
+    unknown_risk["kyc_status_clean"]
+    .value_counts()
+)
+
+print("\nPercentage distribution:")
+print(
+    unknown_risk["kyc_status_clean"]
+    .value_counts(normalize=True).mul(100).round(2)
+)
+
+
+print("Final KYC dataset shape:", kyc.shape)
+
+print("\nMissing values in cleaned columns:")
+cleaned_columns = [
+    "user_id_clean",
+    "full_name_clean",
+    "pan_clean",
+    "aadhaar_clean",
+    "dob_clean",
+    "city_clean",
+    "state_clean",
+    "monthly_income_clean",
+    "occupation_clean",
+    "signup_timestamp_clean",
+    "kyc_status_clean",
+    "risk_segment_clean"
+]
+
+print(kyc[cleaned_columns].isna().sum())
+
+print("\nDuplicate complete rows:", kyc.duplicated().sum())
+
+output_file = "track1_kyc_records_cleaned.csv"
+
+kyc.to_csv(output_file, index=False)
+
+print("Cleaned KYC dataset saved successfully.")
+print("File:", output_file)
+print("Shape:", kyc.shape)
 
