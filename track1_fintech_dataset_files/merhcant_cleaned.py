@@ -499,5 +499,94 @@ print(
 )
 
 
+#=======================================================settlement_cleaning===============================================
+
+
+print("Settlement account data type:",
+      merchants["settlement_account"].dtype)
+
+print("\nMissing settlement accounts:",
+      merchants["settlement_account"].isna().sum())
+
+print("\nSample settlement account values:")
+print(
+    merchants["settlement_account"]
+    .dropna()
+    .astype(str)
+    .head(20)
+    .tolist()
+)
+
+print("\nUnique settlement account values:")
+print(
+    merchants["settlement_account"]
+    .dropna()
+    .astype(str)
+    .nunique()
+)
+
+
+merchants["settlement_account_clean"] = (
+    merchants["settlement_account"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+    .replace("", pd.NA)
+)
+
+print("Missing settlement accounts after cleaning:",
+      merchants["settlement_account_clean"].isna().sum())
+
+print("\nSample original vs cleaned accounts:")
+print(
+    merchants[
+        ["settlement_account", "settlement_account_clean"]
+    ]
+    .dropna(subset=["settlement_account"])
+    .head(20)
+)
+
+print("\nUnique cleaned settlement accounts:",
+      merchants["settlement_account_clean"].nunique())
+
+
+
+
+def validate_settlement_account(x):
+    if pd.isna(x):
+        return "MISSING"
+
+    x = str(x).strip().upper()
+
+    if re.fullmatch(r"\d{10}", x):
+        return "NUMERIC_ACCOUNT"
+
+    if re.fullmatch(r"X{4}\d{4}", x):
+        return "MASKED_ACCOUNT"
+
+    if re.fullmatch(r"[A-Z]{4}\d{13}", x):
+        return "ALPHANUMERIC_ACCOUNT"
+
+    return "OTHER"
+
+
+merchants["settlement_account_type"] = (
+    merchants["settlement_account_clean"]
+    .apply(validate_settlement_account)
+)
+
+print("Settlement account format counts:")
+print(merchants["settlement_account_type"].value_counts())
+
+print("\nOther format examples:")
+print(
+    merchants.loc[
+        merchants["settlement_account_type"] == "OTHER",
+        ["settlement_account_clean"]
+    ].head(20)
+)
+
+
+
 
 
