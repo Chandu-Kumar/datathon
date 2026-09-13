@@ -112,3 +112,22 @@ print("Complete duplicate rows removed:",
       before_shape[0] - after_shape[0])
 
 
+#=====================================================merchant_name-cleaning===========================================================
+
+merchants["merchant_name_clean"] = (
+    merchants["merchant_name"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.title()
+)
+
+print("Missing cleaned merchant names:",
+      merchants["merchant_name_clean"].isna().sum())
+
+print("\nOriginal vs cleaned merchant names:")
+print(
+    merchants[["merchant_name", "merchant_name_clean"]]
+    .head(15)
+)
+
