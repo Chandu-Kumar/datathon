@@ -733,3 +733,83 @@ print("\nUnique occupations:", kyc["occupation_clean"].nunique())
 print("\nOccupation counts:")
 print(kyc["occupation_clean"].value_counts(dropna=False))
 
+#=====+++++++++++++++++++++++++++++++++++++++++++++++=================signup_timestamp_cleaning==========================================================
+
+
+
+def clean_signup_timestamp(x):
+    if pd.isna(x):
+        return pd.NaT
+
+    x = str(x).strip()
+
+    if x == "":
+        return pd.NaT
+
+    # Handle Unix timestamp values
+    if x.isdigit() and len(x) == 10:
+        try:
+            return pd.to_datetime(int(x), unit="s")
+        except (ValueError, TypeError, OverflowError):
+            return pd.NaT
+
+    formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+        "%m-%d-%Y",
+        "%d-%m-%Y",
+        "%d/%m/%Y",
+        "%m/%d/%Y",
+        "%d-%b-%Y",
+        "%d/%m/%Y %H:%M:%S",
+        "%m/%d/%Y %H:%M:%S",
+    ]
+
+    for fmt in formats:
+        try:
+            return pd.to_datetime(x, format=fmt)
+        except (ValueError, TypeError):
+            continue
+
+    return pd.NaT
+
+
+kyc["signup_timestamp_clean"] = kyc["signup_timestamp"].apply(
+    clean_signup_timestamp
+)
+
+print("Original missing timestamps:", kyc["signup_timestamp"].isna().sum())
+print("Cleaned missing timestamps:", kyc["signup_timestamp_clean"].isna().sum())
+
+print("\nTimestamp datatype:", kyc["signup_timestamp_clean"].dtype)
+
+print("\nTimestamp examples:")
+print(
+    kyc[
+        ["signup_timestamp", "signup_timestamp_clean"]
+    ].head(20)
+)
+
+print("\nTimestamp range:")
+print("Minimum:", kyc["signup_timestamp_clean"].min())
+print("Maximum:", kyc["signup_timestamp_clean"].max())
+
+
+
+today = pd.Timestamp.today()
+
+future_signup = kyc["signup_timestamp_clean"] > today
+
+print("Future signup timestamps:", future_signup.sum())
+
+print("\nFuture signup examples:")
+print(
+    kyc.loc[
+        future_signup,
+        ["user_id_clean", "signup_timestamp", "signup_timestamp_clean"]
+    ].head(20)
+)
+
+
+
