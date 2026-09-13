@@ -717,6 +717,84 @@ print(
 )
 
 
+#============================================================final_merhcant quality check==========================================
 
+
+cleaned_merchant_columns = [
+    "merchant_id_clean",
+    "merchant_name_clean",
+    "mcc_clean",
+    "merchant_category_clean",
+    "business_type_clean",
+    "city_clean",
+    "state_clean",
+    "onboarding_date_clean",
+    "settlement_account_clean",
+    "merchant_status_clean",
+    "declared_avg_ticket_size_clean"
+]
+
+print("Final merchants shape:", merchants.shape)
+
+print("\nMissing values in cleaned columns:")
+print(
+    merchants[cleaned_merchant_columns].isna().sum()
+)
+
+print("\nData types of cleaned columns:")
+print(
+    merchants[cleaned_merchant_columns].dtypes
+)
+
+print("\nComplete duplicate rows after cleaning:",
+      merchants[cleaned_merchant_columns].duplicated().sum())
+
+print("\nDuplicate cleaned merchant IDs:",
+      merchants["merchant_id_clean"].duplicated().sum())
+
+
+before_rows = len(merchants)
+
+duplicate_cleaned_rows = merchants[
+    merchants[cleaned_merchant_columns].duplicated(keep=False)
+].sort_values(cleaned_merchant_columns)
+
+print("Duplicate cleaned rows:", len(duplicate_cleaned_rows))
+
+print("\nDuplicate cleaned row examples:")
+print(
+    duplicate_cleaned_rows[
+        cleaned_merchant_columns
+    ].head(10)
+)
+
+# Completely identical cleaned records remove karna
+merchants = merchants.drop_duplicates(
+    subset=cleaned_merchant_columns
+).copy()
+
+after_rows = len(merchants)
+
+print("\nRows before removal:", before_rows)
+print("Rows after removal:", after_rows)
+print("Duplicate cleaned rows removed:",
+      before_rows - after_rows)
+
+print(
+    "\nRemaining duplicate cleaned rows:",
+    merchants[cleaned_merchant_columns].duplicated().sum()
+)
+
+
+output_file = "track1_merchants_master_cleaned.csv"
+
+merchants.to_csv(
+    output_file,
+    index=False
+)
+
+print("Cleaned merchants file exported successfully!")
+print("File name:", output_file)
+print("Final shape:", merchants.shape)
 
 
