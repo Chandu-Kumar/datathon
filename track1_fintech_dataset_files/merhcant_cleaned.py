@@ -1,5 +1,7 @@
 import pandas as pd
 
+import re
+
 merchants = pd.read_csv("track1_merchants_master.csv")
 
 print("Original merchants shape:", merchants.shape)
@@ -26,7 +28,7 @@ print(
 
 
 
-import re
+
 
 def clean_merchant_id(x):
     if pd.isna(x):
@@ -285,4 +287,108 @@ print("Unique business types after standardization:",
 
 print("\nFinal business type counts:")
 print(merchants["business_type_clean"].value_counts())
+
+#+++++++++++++++++++++++++++++++++++++++++=================================state&city_cleaning+++++++++++=======================================
+
+
+merchants["city_clean"] = (
+    merchants["city"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.title()
+)
+
+merchants["state_clean"] = (
+    merchants["state"]
+    .astype("string")
+    .str.strip()
+    .str.replace(r"\s+", " ", regex=True)
+    .str.title()
+)
+
+print("Missing cleaned cities:",
+      merchants["city_clean"].isna().sum())
+
+print("Missing cleaned states:",
+      merchants["state_clean"].isna().sum())
+
+print("\nUnique cities:")
+print(merchants["city_clean"].unique())
+
+print("\nUnique states:")
+print(merchants["state_clean"].unique())
+
+
+city_mapping = {
+    "Bombay": "Mumbai",
+    "Mumbay": "Mumbai",
+
+    "Blr": "Bengaluru",
+    "Bangalore": "Bengaluru",
+
+    "Poona": "Pune",
+
+    "Calcutta": "Kolkata",
+
+    "Madras": "Chennai",
+
+    "Hyd": "Hyderabad",
+
+    "Lko": "Lucknow",
+
+    "Jalandar": "Jalandhar",
+
+    "Jpr": "Jaipur",
+
+    "Asr": "Amritsar",
+
+    "Ldh": "Ludhiana",
+
+    "New Delhi": "Delhi",
+    "Dilli": "Delhi"
+}
+
+merchants["city_clean"] = merchants["city_clean"].replace(city_mapping)
+
+print("Unique cities after standardization:",
+      merchants["city_clean"].nunique())
+
+print("\nFinal city counts:")
+print(merchants["city_clean"].value_counts())
+
+
+city_state_mapping = {
+    "Mumbai": "Maharashtra",
+    "Pune": "Maharashtra",
+    "Bengaluru": "Karnataka",
+    "Chennai": "Tamil Nadu",
+    "Hyderabad": "Telangana",
+    "Jaipur": "Rajasthan",
+    "Amritsar": "Punjab",
+    "Jalandhar": "Punjab",
+    "Ludhiana": "Punjab",
+    "Delhi": "Delhi",
+    "Lucknow": "Uttar Pradesh",
+    "Kolkata": "West Bengal"
+}
+
+expected_state = merchants["city_clean"].map(city_state_mapping)
+
+city_state_mismatch = merchants[
+    expected_state.notna()
+    & (merchants["state_clean"] != expected_state)
+]
+
+print("City-state mismatches:", len(city_state_mismatch))
+
+print("\nMismatch examples:")
+print(
+    city_state_mismatch[
+        ["city_clean", "state_clean"]
+    ].head(10)
+)
+
+
+
 
