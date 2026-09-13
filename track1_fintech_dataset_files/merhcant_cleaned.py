@@ -638,5 +638,85 @@ print("\nMissing cleaned statuses:",
       merchants["merchant_status_clean"].isna().sum())
 
 
+#========================================================================ticket_size_cleaning+===================================
+
+
+
+import numpy as np
+
+merchants["declared_avg_ticket_size_clean"] = (
+    merchants["declared_avg_ticket_size"]
+    .astype("string")
+    .str.strip()
+    .str.upper()
+    .str.replace("INR", "", regex=False)
+    .str.replace("RS.", "", regex=False)
+    .str.replace("₹", "", regex=False)
+    .str.replace(",", "", regex=False)
+    .str.strip()
+)
+
+merchants["declared_avg_ticket_size_clean"] = pd.to_numeric(
+    merchants["declared_avg_ticket_size_clean"],
+    errors="coerce"
+)
+
+print("Missing ticket sizes after cleaning:",
+      merchants["declared_avg_ticket_size_clean"].isna().sum())
+
+print("\nData type:",
+      merchants["declared_avg_ticket_size_clean"].dtype)
+
+print("\nMinimum cleaned ticket size:",
+      merchants["declared_avg_ticket_size_clean"].min())
+
+print("\nMaximum cleaned ticket size:",
+      merchants["declared_avg_ticket_size_clean"].max())
+
+print("\nSample original vs cleaned values:")
+print(
+    merchants[
+        [
+            "declared_avg_ticket_size",
+            "declared_avg_ticket_size_clean"
+        ]
+    ]
+    .dropna(subset=["declared_avg_ticket_size"])
+    .head(20)
+)
+
+
+
+negative_ticket_mask = (
+    merchants["declared_avg_ticket_size_clean"] < 0
+)
+
+print("Negative ticket sizes:", negative_ticket_mask.sum())
+
+print("\nNegative ticket size examples:")
+print(
+    merchants.loc[
+        negative_ticket_mask,
+        [
+            "merchant_id_clean",
+            "declared_avg_ticket_size",
+            "declared_avg_ticket_size_clean"
+        ]
+    ].head(10)
+)
+
+# Negative values ko missing mark karna
+merchants.loc[
+    negative_ticket_mask,
+    "declared_avg_ticket_size_clean"
+] = pd.NA
+
+print(
+    "\nMissing ticket sizes after validation:",
+    merchants["declared_avg_ticket_size_clean"].isna().sum()
+)
+
+
+
 
 
